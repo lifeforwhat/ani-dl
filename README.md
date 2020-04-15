@@ -1,4 +1,5 @@
 SUPPORTS ONLY PYTHON 3
+
 SUPPORTS ONLY Qbittorrent
 
 version 0.3
