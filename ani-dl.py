@@ -51,6 +51,7 @@ def main(args):
     page_count = int(args.limit)
     while page_count > 1 :
         page_count += -1
+        print("디스코드 페이지를 읽고 있습니다. %s 페이지 남았습니다." % page_count)
         # https://discordapp.com/api/v6/channels/697034062606630962/messages?before=699554317908312124&limit=50
         final_id = str(before_j[-1]['id'])
         before_j = requests.get('https://discordapp.com/api/v6/channels/%s/messages?before=%s&limit=%s' % ( args.channel_id, final_id,'50'), headers=headers).json()
@@ -86,11 +87,14 @@ def main(args):
 
     for con_js in data :
         # 온갖 필터링 옵션들
-
-
-        if white_list != None and con_js['onnada']['title'] not in white_list:
-            print("SKIP BY NAME FILTER\t\t",con_js['onnada'])
-            continue
+        if white_list != None :#and con_js['onnada']['title'] not in white_list:
+            keep = False
+            for w in white_list:
+                if w.lower() in con_js['onnada']['title'].lower():
+                    keep = True
+            if keep == False:
+                print("SKIP BY %s\t\t" % args.filter_title ,con_js['onnada'])
+                continue
 
         # ongoing_check
         if args.ongoing_check == True and con_js['myanime']['payload']['status'].lower().count('finished') > 0 :
@@ -146,7 +150,7 @@ def main(args):
 
 if __name__ == '__main__':
     import time , json , re
-    parser = argparse.ArgumentParser(description="애니메이션 Qbittorrent 자동 다운로드, 버전 0.3")
+    parser = argparse.ArgumentParser(description="애니메이션 Qbittorrent 자동 다운로드, 버전 0.4")
     parser.add_argument("-k","--authorize_key" , type=str,help="인증용 KEY" , default=False)
     parser.add_argument("-c","--channel_id", type=str,help="채널 ID", default=False)
     parser.add_argument("-r", "--resolution" , help="특정 화질 우선 다운로드, 기본값 1080"  , default="1080")
@@ -158,7 +162,7 @@ if __name__ == '__main__':
     parser.add_argument("-ca", "--qbit_category_name", help="qbittorrent category(범주) label name, 기본값 latest_anime", default='latest_anime')
     parser.add_argument("-o", "--ongoing_check", help="현재 방영중인 것만 받기, 기본값 False", default=False)
     parser.add_argument("-y", "--specific_year", help="특정 년도 이상만 받기, 가령 2019면 2019,2020만. 기본값 2020", default="2020")
-    parser.add_argument("-f", "--filter_title", help="특정 타이틀만 받기. 구분자 | (쉬프트 + \) (BETA)", default=None)
+    parser.add_argument("-f", "--filter_title", help="특정 타이틀만 받기. 구분자 | (쉬프트 + \) , 해당 키워드가 파일 이름또는 디스코드 타이틀에 포함되어 있지 않으면 무시한다.(BETA)", default=None)
     parser.add_argument("-m", "--ignore_mass_torrents", help="여러 에피소드가 묶여있는 토렌트는 무시한다, 기본값 True", default=True)
     parser.add_argument("-db", "--making_DB", help="DB에 있는 중복 파일은 무시, 기본값 True", default=True)
     args = parser.parse_args()
