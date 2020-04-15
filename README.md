@@ -44,9 +44,12 @@ parser.add_argument("-y", "--specific_year", help="특정 년도 이상만 받�
 parser.add_argument("-f", "--filter_title", help="특정 타이틀만 받기. 구분자 | (쉬프트 + \) (BETA)", default=None)
 parser.add_argument("-m", "--ignore_mass_torrents", help="여러 에피소드가 묶여있는 토렌트는 무시한다, 기본값 True", default=True)
 parser.add_argument("-db", "--making_DB", help="DB에 있는 중복 파일은 무시, 기본값 True", default=True)
-     ```
+```
+    
     
 위 명령어를 참조하시고
+
+
 
 ```
 python ani-dl.py -k {개인 디스코드 KEY} -c {채널 ID} --qbit_download_folder "F:\애니\애니ONGOING" --qbit_ip 192.168.1.5 --qbit_port 20000
