@@ -54,4 +54,21 @@ parser.add_argument("-db", "--making_DB", help="DB에 있는 중복 파일은 �
 ```
 python ani-dl.py -k {개인 디스코드 KEY} -c {채널 ID} --qbit_download_folder "F:\애니\애니ONGOING" --qbit_ip 192.168.1.5 --qbit_port 20000
 ```
+
 이런 식으로 사용하시면 됩니다.
+
+
+
+
+
+```
+특정 애니메이션만 탐색하고 싶을 때
+python ani-dl.py -k {개인 디스코드 KEY} -c {채널 ID}  --qbit_download_folder "F:\애니\애니ONGOING" --limit 20 --filter_title "원피스|Hero academia"
+```
+
+
+
+```
+특정 애니메이션만 탐색하고 싶고, 특정 년도 이상만 탐색하고 싶을 때
+python ani-dl.py -k {개인 디스코드 KEY} -c {채널 ID}  --qbit_download_folder "F:\애니\애니ONGOING" --limit 20 --filter_title "원피스|Hero academia" --specific_year 2020
+```
