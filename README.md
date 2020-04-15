@@ -2,6 +2,12 @@ SUPPORTS ONLY PYTHON 3
 
 SUPPORTS ONLY Qbittorrent
 
+version 0.4
+==========
+--filter_title 수정.
+해당하는 키워드를 '포함'하면 다운로드 진행
+
+
 version 0.3
 ===========
 Bug Fix
