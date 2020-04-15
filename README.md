@@ -77,4 +77,9 @@ python ani-dl.py -k {개인 디스코드 KEY} -c {채널 ID}  --qbit_download_fo
 ```
 특정 애니메이션만 탐색하고 싶고, 특정 년도 이상만 탐색하고 싶을 때
 python ani-dl.py -k {개인 디스코드 KEY} -c {채널 ID}  --qbit_download_folder "F:\애니\애니ONGOING" --limit 20 --filter_title "원피스|Hero academia" --specific_year 2020
+
+다만 이 경우에는 --limit 인자의 값을 크게 주어야만 합니다.
+왜냐하면, 이런 search 모드의 경우 많은 데이터베이스를 필요로 하며 탐색 시간 또한 오래걸립니다.
+그러나 값을 1000 이상 너무 큰 값을 잡아버리면 에러가 발생할 수 있으므로 적절한 값을 찾아가는 것이 중요합니다.
+
 ```
