@@ -61,7 +61,7 @@ def main(args):
 
     # ani-dl 0.2
     # 현재 탐색한 내용을 DB에 넣어준다
-    with SqliteDict('ani-dl.db') as db :
+    """with SqliteDict('ani-dl.db') as db :
         for item in data: # sub_url 을 unique 로 쓴다
             item = json.loads(item['embeds'][0]['description'])
             if item['sub_url'] not in db:
@@ -71,25 +71,30 @@ def main(args):
     # 다운 완료한 토렌트 정보를 ani-dl_completed.db에 넣어준다
     with SqliteDict('ani-dl.db') as db:
         with SqliteDict('ani-dl_completed.db') as complete_db:
-            if args.making_DB == True:
+            if args.compare_database == True:
                 data = [db[item] for item in db if db[item]['sub_url'] not in complete_db]
-            elif args.making_DB == False:
+            elif args.compare_database == False:
                 data = [db[item] for item in db ]
             for item in data:
+                if 'sub_url' not in item:
+                    print(item)
                 if item['sub_url'] not in complete_db:
                     complete_db[item['sub_url']] = True
-            complete_db.commit()
+            complete_db.commit()"""
 
 
     white_list = args.filter_title
     if white_list !=  None:
         white_list = [item.strip() for item in white_list.split('|')]
-
-    for con_js in data :
+    print("FOUND",len(data))
+    for item in data :
+        con_js = json.loads(item['embeds'][0]['description'])
         # 온갖 필터링 옵션들
         if white_list != None :#and con_js['onnada']['title'] not in white_list:
             keep = False
             for w in white_list:
+                if 'onnada' not in con_js:
+                    print(con_js)
                 if w.lower() in con_js['onnada']['title'].lower():
                     keep = True
             if keep == False:
@@ -150,7 +155,7 @@ def main(args):
 
 if __name__ == '__main__':
     import time , json , re
-    parser = argparse.ArgumentParser(description="애니메이션 Qbittorrent 자동 다운로드, 버전 0.4")
+    parser = argparse.ArgumentParser(description="애니메이션 Qbittorrent 자동 다운로드, 버전 0.5")
     parser.add_argument("-k","--authorize_key" , type=str,help="인증용 KEY" , default=False)
     parser.add_argument("-c","--channel_id", type=str,help="채널 ID", default=False)
     parser.add_argument("-r", "--resolution" , help="특정 화질 우선 다운로드, 기본값 1080"  , default="1080")
@@ -164,7 +169,7 @@ if __name__ == '__main__':
     parser.add_argument("-y", "--specific_year", help="특정 년도 이상만 받기, 가령 2019면 2019,2020만. 기본값 2020", default="2020")
     parser.add_argument("-f", "--filter_title", help="특정 타이틀만 받기. 구분자 | (쉬프트 + \) , 해당 키워드가 파일 이름또는 디스코드 타이틀에 포함되어 있지 않으면 무시한다.(BETA)", default=None)
     parser.add_argument("-m", "--ignore_mass_torrents", help="여러 에피소드가 묶여있는 토렌트는 무시한다, 기본값 True", default=True)
-    parser.add_argument("-db", "--making_DB", help="DB에 있는 중복 파일은 무시, 기본값 True", default=True)
+    #parser.add_argument("-db", "--compare_database", help="최근에 한 번 검색 또는 다운로드됐던 정보는 무시, 커맨드 창 관리에 용이, 기본값 True", default=True)
     args = parser.parse_args()
     print('authorize_key :',args.authorize_key)
     print('channel_id :',args.channel_id )
