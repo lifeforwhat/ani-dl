@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# PYTHON 3
 import os
 import argparse
 from urllib.parse import unquote
@@ -57,15 +56,36 @@ def main(args):
         before_j = requests.get('https://discordapp.com/api/v6/channels/%s/messages?before=%s&limit=%s' % ( args.channel_id, final_id,'50'), headers=headers).json()
         j += before_j
 
-    data = [item for item in j if item['author']['bot'] == True and item['author']['username'] == "data"] # data 유저가 뿌려주는 json 데이터만 모은다
+    data = [item for item in j if item['author']['bot'] == True and item['author']['username'] == "data"] # data 봇이 뿌려주는 json 데이터만 모은다
+
+    # ani-dl 0.2
+    # 현재 탐색한 내용을 DB에 넣어준다
+    with SqliteDict('ani-dl.db') as db :
+        for item in data: # sub_url 을 unique 로 쓴다
+            item = json.loads(item['embeds'][0]['description'])
+            if item['sub_url'] not in db:
+                db[item['sub_url']] = item
+        db.commit()
+
+    # 다운 완료한 토렌트 정보를 ani-dl_completed.db에 넣어준다
+    with SqliteDict('ani-dl.db') as db:
+        with SqliteDict('ani-dl_completed.db') as complete_db:
+            if args.making_DB == True:
+                data = [db[item] for item in db if db[item]['sub_url'] not in complete_db]
+            elif args.making_DB == False:
+                data = [db[item] for item in db ]
+            for item in data:
+                if item['sub_url'] not in complete_db:
+                    complete_db[item['sub_url']] = item
+            complete_db.commit()
+
 
     white_list = args.filter_title
     if white_list !=  None:
         white_list = [item.strip() for item in white_list.split('|')]
 
     for item in data :
-        con = item['embeds'][0]['description']
-        con_js = json.loads(con)
+        con_js = json.loads(item['embeds'][0]['description'])
         # 온갖 필터링 옵션들
 
 
@@ -111,7 +131,6 @@ def main(args):
 
             print("DOWNLOADING\t\t",true_mg['title'])
             downpath = args.qbit_download_folder
-            #qb.download_from_link(true_mg['magnet'] , category = args.qbit_category_name , savepath = downpath)
             res = requests.get(con_js['sub_url'])
             sub_ext = get_filename_from_cd(res.headers.get('content-disposition'))
             sub_ext = unquote(sub_ext).replace('"', '')
@@ -131,7 +150,7 @@ if __name__ == '__main__':
     parser.add_argument("-k","--authorize_key" , type=str,help="인증용 KEY" , default=False)
     parser.add_argument("-c","--channel_id", type=str,help="채널 ID", default=False)
     parser.add_argument("-r", "--resolution" , help="특정 화질 우선 다운로드, 기본값 1080"  , default="1080")
-    parser.add_argument("-l", "--limit" , help="탐색값. 숫자가 커질수록 시간이 길어짐. 기본값 2 (페이지 숫자를 말함)"  , default="2")
+    parser.add_argument("-l", "--limit" , help="탐색값. 숫자가 커질수록 시간이 길어짐. 기본값 2 (페이지 숫자를 말함)"  , default="10")
     parser.add_argument("-q", "--qbit_ip" , help="qbittorrent IP , 기본값 127.0.0.1"  , default="127.0.0.1")
     parser.add_argument("-p", "--qbit_port", help="qbittorrent port, 기본값 8080", default="8080")
     parser.add_argument("-s", "--qbit_secure", help="qbittorrent verify, 기본값 False", default=False)
@@ -141,6 +160,7 @@ if __name__ == '__main__':
     parser.add_argument("-y", "--specific_year", help="특정 년도 이상만 받기, 가령 2019면 2019,2020만. 기본값 2020", default="2020")
     parser.add_argument("-f", "--filter_title", help="특정 타이틀만 받기. 구분자 | (쉬프트 + \) (BETA)", default=None)
     parser.add_argument("-m", "--ignore_mass_torrents", help="여러 에피소드가 묶여있는 토렌트는 무시한다, 기본값 True", default=True)
+    parser.add_argument("-db", "--making_DB", help="DB에 있는 중복 파일은 무시, 기본값 True", default=True)
     args = parser.parse_args()
     print('authorize_key :',args.authorize_key)
     print('channel_id :',args.channel_id )
