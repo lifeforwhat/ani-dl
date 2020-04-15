@@ -76,7 +76,7 @@ def main(args):
                 data = [db[item] for item in db ]
             for item in data:
                 if item['sub_url'] not in complete_db:
-                    complete_db[item['sub_url']] = item
+                    complete_db[item['sub_url']] = True
             complete_db.commit()
 
 
@@ -84,8 +84,7 @@ def main(args):
     if white_list !=  None:
         white_list = [item.strip() for item in white_list.split('|')]
 
-    for item in data :
-        con_js = json.loads(item['embeds'][0]['description'])
+    for con_js in data :
         # 온갖 필터링 옵션들
 
 
@@ -123,7 +122,7 @@ def main(args):
         if true_mg != "" : # 쓸만한 마그넷을 찾았다.
             with SqliteDict('anime_torrent.db') as db:
                 if true_mg['magnet'] in db:
-                    print("DUP\t\t\t",true_mg['title'])
+                    print("ALREADY DOWNLOAD (anime_torrent.db)\t\t\t",true_mg['title'])
                     continue # 중복
                 else:
                     db.update({true_mg['magnet'] : True})
@@ -131,6 +130,7 @@ def main(args):
 
             print("DOWNLOADING\t\t",true_mg['title'])
             downpath = args.qbit_download_folder
+            #qb.download_from_link(true_mg['magnet'] , category = args.qbit_category_name , savepath = downpath)
             res = requests.get(con_js['sub_url'])
             sub_ext = get_filename_from_cd(res.headers.get('content-disposition'))
             sub_ext = unquote(sub_ext).replace('"', '')
@@ -146,7 +146,7 @@ def main(args):
 
 if __name__ == '__main__':
     import time , json , re
-    parser = argparse.ArgumentParser(description="애니메이션 Qbittorrent 자동 다운로드, 버전 0.1")
+    parser = argparse.ArgumentParser(description="애니메이션 Qbittorrent 자동 다운로드, 버전 0.3")
     parser.add_argument("-k","--authorize_key" , type=str,help="인증용 KEY" , default=False)
     parser.add_argument("-c","--channel_id", type=str,help="채널 ID", default=False)
     parser.add_argument("-r", "--resolution" , help="특정 화질 우선 다운로드, 기본값 1080"  , default="1080")
