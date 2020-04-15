@@ -2,6 +2,10 @@ SUPPORTS ONLY PYTHON 3
 
 SUPPORTS ONLY Qbittorrent
 
+version 0.5
+==========
+DB기능 삭제
+
 version 0.4
 ==========
 --filter_title 수정.
