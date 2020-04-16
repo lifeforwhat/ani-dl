@@ -98,7 +98,7 @@ def main(args):
                 if w.lower() in con_js['onnada']['title'].lower():
                     keep = True
             if keep == False:
-                print("SKIP BY %s\t\t" % args.filter_title ,con_js['onnada'])
+                print("FILTERED BY filter_title , %s\t\t" % args.filter_title ,con_js['onnada'])
                 continue
 
         # ongoing_check
@@ -147,6 +147,10 @@ def main(args):
             sub_filename = os.path.splitext(true_mg['title'])[0] + sub_ext
             open(os.path.join(downpath, sub_filename) , 'wb' ).write(res.content)
             # 어차피 nyaa.si 에서만 다운받으니깐.
+            if true_mg['size'].count('GiB') > 0 :
+                if float(true_mg['size'].replace('GiB','').strip()) > float(args.max_volume) :
+                    print("FILTERED BY max_volume arugment\t\t", true_mg)
+                    continue
             magnet = true_mg['magnet'] + "&tr=http%3A%2F%2Fnyaa.tracker.wf%3A7777%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969%2Fannounce&tr=udp%3A%2F%2Fexodus.desync.com%3A6969%2Fannounce"
             qb.download_from_link(magnet, category=args.qbit_category_name, savepath=downpath)
             continue
@@ -169,6 +173,7 @@ if __name__ == '__main__':
     parser.add_argument("-y", "--specific_year", help="특정 년도 이상만 받기, 가령 2019면 2019,2020만. 기본값 2020", default="2020")
     parser.add_argument("-f", "--filter_title", help="특정 타이틀만 받기. 구분자 | (쉬프트 + \) , 해당 키워드가 파일 이름또는 디스코드 타이틀에 포함되어 있지 않으면 무시한다.(BETA)", default=None)
     parser.add_argument("-m", "--ignore_mass_torrents", help="여러 에피소드가 묶여있는 토렌트는 무시한다, 기본값 True", default=True)
+    parser.add_argument("-max", "--max_volume", help="특정 용량 넘어가는 토렌트 받지 않기, 기본값 3GB", default="3")
     #parser.add_argument("-db", "--compare_database", help="최근에 한 번 검색 또는 다운로드됐던 정보는 무시, 커맨드 창 관리에 용이, 기본값 True", default=True)
     args = parser.parse_args()
     print('authorize_key :',args.authorize_key)
