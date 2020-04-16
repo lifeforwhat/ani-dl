@@ -53,11 +53,15 @@ def main(args):
         page_count += -1
         print("디스코드 페이지를 읽고 있습니다. %s 페이지 남았습니다." % page_count)
         # https://discordapp.com/api/v6/channels/697034062606630962/messages?before=699554317908312124&limit=50
-        final_id = str(before_j[-1]['id'])
+        try:
+            final_id = str(before_j[-1]['id'])
+        except IndexError:
+            print("더이상 찾을 수 있는 디스코드 페이지가 없습니다")
+            break
         before_j = requests.get('https://discordapp.com/api/v6/channels/%s/messages?before=%s&limit=%s' % ( args.channel_id, final_id,'50'), headers=headers).json()
         j += before_j
 
-    data = [item for item in j if item['author']['bot'] == True and item['author']['username'] == "data"] # data 봇이 뿌려주는 json 데이터만 모은다
+    data = [item for item in j if item['author']['bot'] == True and item['author']['username'] == "data_001"] # data 봇이 뿌려주는 json 데이터만 모은다
 
     # ani-dl 0.2
     # 현재 탐색한 내용을 DB에 넣어준다
@@ -98,7 +102,8 @@ def main(args):
                 if w.lower() in con_js['onnada']['title'].lower():
                     keep = True
             if keep == False:
-                print("FILTERED BY filter_title , %s\t\t" % args.filter_title ,con_js['onnada'])
+                if args.verbose:
+                    print("FILTERED BY filter_title , %s\t\t" % args.filter_title ,con_js['onnada'])
                 continue
 
         # ongoing_check
@@ -106,8 +111,9 @@ def main(args):
             continue
 
         # Year
-        if args.specific_year != None and int(con_js['myanime']['payload']['start_year']) < int(args.specific_year):
-            print("FILTERED BY specific_year arugment\t\t",con_js['myanime']['payload'])
+        if args.specific_year != None and int(con_js['myanime']['payload']['start_year']) < int(args.specific_year): # myanime
+            if args.verbose:
+                print("FILTERED BY specific_year arugment\t\t",con_js['myanime']['payload'])
             continue
 
         # 옵션에 맞는 마그넷을 골라주는 과정
@@ -123,7 +129,8 @@ def main(args):
         if true_mg == "":
             for mg in con_js['magnets']:
                 if args.ignore_mass_torrents == True and len(re.findall('\d+ ~ \d+', mg['title'])) > 0:  # 여러 에피소드 묶여있는 경우
-                    print("FILTERED BY ignore_mass_torrents argument\t\t", mg['title'])
+                    if args.verbose:
+                        print("FILTERED BY ignore_mass_torrents argument\t\t", mg['title'])
                     continue
                 true_mg = mg
                 break
@@ -131,12 +138,22 @@ def main(args):
         if true_mg != "" : # 쓸만한 마그넷을 찾았다.
             with SqliteDict('anime_torrent.db') as db:
                 if true_mg['magnet'] in db:
-                    print("ALREADY DOWNLOAD (anime_torrent.db)\t\t\t",true_mg['title'])
+                    if args.verbose:
+                        print("ALREADY DOWNLOAD (anime_torrent.db)\t\t\t",true_mg['title'])
                     continue # 중복
                 else:
                     db.update({true_mg['magnet'] : True})
                     db.commit()
-
+            if true_mg['size'].count('GiB') > 0:
+                if float(true_mg['size'].replace('GiB', '').strip()) > float(args.max_volume):
+                    if args.verbose:
+                        print("FILTERED BY max_volume arugment\t\t", true_mg)
+                    continue
+                    # Year
+            if args.specific_year != None and int(true_mg['date'][:4]) > int(args.specific_year):  # torrent date
+                if args.verbose:
+                    print("FILTERED BY specific_year arugment\t\t", con_js['myanime']['payload'])
+                continue
             print("DOWNLOADING\t\t",true_mg['title'])
             downpath = args.qbit_download_folder
             #qb.download_from_link(true_mg['magnet'] , category = args.qbit_category_name , savepath = downpath)
@@ -147,10 +164,8 @@ def main(args):
             sub_filename = os.path.splitext(true_mg['title'])[0] + sub_ext
             open(os.path.join(downpath, sub_filename) , 'wb' ).write(res.content)
             # 어차피 nyaa.si 에서만 다운받으니깐.
-            if true_mg['size'].count('GiB') > 0 :
-                if float(true_mg['size'].replace('GiB','').strip()) > float(args.max_volume) :
-                    print("FILTERED BY max_volume arugment\t\t", true_mg)
-                    continue
+
+
             magnet = true_mg['magnet'] + "&tr=http%3A%2F%2Fnyaa.tracker.wf%3A7777%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969%2Fannounce&tr=udp%3A%2F%2Fexodus.desync.com%3A6969%2Fannounce"
             qb.download_from_link(magnet, category=args.qbit_category_name, savepath=downpath)
             continue
@@ -159,7 +174,7 @@ def main(args):
 
 if __name__ == '__main__':
     import time , json , re
-    parser = argparse.ArgumentParser(description="애니메이션 Qbittorrent 자동 다운로드, 버전 0.5")
+    parser = argparse.ArgumentParser(description="애니메이션 Qbittorrent 자동 다운로드, 버전 0.6")
     parser.add_argument("-k","--authorize_key" , type=str,help="인증용 KEY" , default=False)
     parser.add_argument("-c","--channel_id", type=str,help="채널 ID", default=False)
     parser.add_argument("-r", "--resolution" , help="특정 화질 우선 다운로드, 기본값 1080"  , default="1080")
@@ -174,6 +189,7 @@ if __name__ == '__main__':
     parser.add_argument("-f", "--filter_title", help="특정 타이틀만 받기. 구분자 | (쉬프트 + \) , 해당 키워드가 파일 이름또는 디스코드 타이틀에 포함되어 있지 않으면 무시한다.(BETA)", default=None)
     parser.add_argument("-m", "--ignore_mass_torrents", help="여러 에피소드가 묶여있는 토렌트는 무시한다, 기본값 True", default=True)
     parser.add_argument("-max", "--max_volume", help="특정 용량 넘어가는 토렌트 받지 않기, 기본값 3GB", default="3")
+    parser.add_argument("-v", "--verbose", help="필터링 된 토렌트 파일 로그 띄우기, 기본값 False", default=False)
     #parser.add_argument("-db", "--compare_database", help="최근에 한 번 검색 또는 다운로드됐던 정보는 무시, 커맨드 창 관리에 용이, 기본값 True", default=True)
     args = parser.parse_args()
     print('authorize_key :',args.authorize_key)
