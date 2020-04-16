@@ -97,9 +97,7 @@ def main(args):
         if white_list != None :#and con_js['onnada']['title'] not in white_list:
             keep = False
             for w in white_list:
-                if 'onnada' not in con_js:
-                    print(con_js)
-                if w.lower() in con_js['onnada']['title'].lower():
+                if w.lower() in con_js['title'].lower():
                     keep = True
             if keep == False:
                 if args.verbose:
@@ -112,9 +110,15 @@ def main(args):
 
         # Year
         if args.specific_year != None and int(con_js['myanime']['payload']['start_year']) < int(args.specific_year): # myanime
-            if args.verbose:
-                print("FILTERED BY specific_year arugment\t\t",con_js['myanime']['payload'])
-            continue
+            year_filter = False # 모든 토런트를 확인해본다.
+            for torrent in con_js['magnets']:
+                if int(torrent['date'][:4]) >= int(args.specific_year) :
+                    year_filter = True
+                    break # 하나라도 넘는군
+            if year_filter == False:
+                if args.verbose:
+                    print("FILTERED BY specific_year arugment\t\t",con_js['myanime']['payload'])
+                continue
 
         # 옵션에 맞는 마그넷을 골라주는 과정
         true_mg = ""
