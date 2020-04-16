@@ -2,6 +2,13 @@ SUPPORTS ONLY PYTHON 3
 
 SUPPORTS ONLY Qbittorrent
 
+version 0.6
+=========
+--specific_year 를 좀 더 포괄적으로 사용 가능.
+
+토렌트 생성년도 또는 방영 시작년도 둘 중 하나
+
+
 version 0.5
 ==========
 DB기능 삭제
@@ -87,5 +94,18 @@ python ani-dl.py -k {개인 디스코드 KEY} -c {채널 ID}  --qbit_download_fo
 다만 이 경우에는 --limit 인자의 값을 크게 주어야만 합니다.
 왜냐하면, 이런 search 모드의 경우 많은 데이터베이스를 필요로 하며 탐색 시간 또한 오래걸립니다.
 그러나 값을 1000 이상 너무 큰 값을 잡아버리면 에러가 발생할 수 있으므로 적절한 값을 찾아가는 것이 중요합니다.
+
+```
+
+
+
+```
+올해의 원피스를 다운받고 싶다면,
+
+python ani-dl.py -k {개인 디스코드 KEY} -c {채널 ID}  --qbit_download_folder "F:\애니\애니ONGOING" --limit 100 --filter_title "원피스" --specific_year 2020
+
+이 정도 입력하시면 됩니다.
+
+--limit 값은 조절할 필요가 있습니다.
 
 ```
