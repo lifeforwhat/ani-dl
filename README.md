@@ -5,6 +5,7 @@ SUPPORTS ONLY Qbittorrent
 version 0.5
 ==========
 DB기능 삭제
+특정 용량 이상 다운로드 제한 옵션 추가 (--max_volume, 기본값 3GB)
 
 version 0.4
 ==========
